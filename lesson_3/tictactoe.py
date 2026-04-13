@@ -4,6 +4,7 @@ import os
 VACANT = ' '
 HUMAN_PLAYER = 'X'
 COMPUTER_PLAYER = 'O'
+NUMBER_OF_GAMES = 5
 
 def display_board(board):
     os.system('clear')
@@ -27,25 +28,38 @@ def prompt(message):
     return f"==> {message}"
 
 def get_valid_squares(board):
-    return [key for key, value in board.items() if value == VACANT]
+    return [str(key) for key, value in board.items() if value == VACANT]
+
+def join_or(lst, sep=', ', last_sep='or'):
+    if len(lst) == 0:
+        return ''
+    if len(lst) == 1:
+        return lst[0]
+    if len(lst) == 2:
+        return f"{lst[0]} {last_sep} {lst[1]}"
+    last_square = lst[-1]
+    new_lst = lst[:-1] + [last_sep]
+    new_lst_str = sep.join(new_lst)
+    return f'{new_lst_str} {last_square}'
 
 def player_chooses_square(board):
-    valid_squares = [key for key, value in board.items() if value == VACANT]
+    valid_squares = get_valid_squares(board)
     while True:
-        print(prompt(f"Choose a square from {valid_squares}: "))
-        square = int(input().strip())
+        valid_choice = join_or(valid_squares)
+        print(prompt(f"Choose a square {valid_choice}:"))
+        square = input().strip()
         if square in valid_squares:
             break
         else:
-            print(prompt(f"Invalid square number. You must choose from: {valid_squares}"))
+            print(prompt(f"Invalid square number. You must choose: {valid_choice}"))
 
-    board[square] = HUMAN_PLAYER
+    board[int(square)] = HUMAN_PLAYER
 
 def computer_chooses_square(board):
     valid_squares = get_valid_squares(board)
     if valid_squares:
         square = random.choice(valid_squares)
-        board[square] = COMPUTER_PLAYER
+        board[int(square)] = COMPUTER_PLAYER
 
 def detect_winner(board):
     winning_combos = [
@@ -72,6 +86,17 @@ def someone_won(board):
 def board_full(board):
     return len(get_valid_squares(board)) == 0
 
+def display_match_result(player, computer):
+    if player > computer:
+        print(prompt("Player won the match"))
+    elif player < computer:
+        print(prompt("Computer won the match"))
+    else:
+        print(prompt("Match is over. It's a tie"))
+
+player_win = 0
+computer_win = 0
+count = 0
 while True:
     board = initialize_board()
     display_board(board)
@@ -88,11 +113,27 @@ while True:
             break
 
     if someone_won(board):
-        print(prompt(f"{detect_winner(board)} won!"))
+        winner = detect_winner(board)
+        print(prompt(f"{winner} won!"))
     else:
         print(prompt("It's a tie"))
 
-    print(prompt("Play again? y/n"))
-    answer = input().strip().lower()
-    if not answer or answer.strip()[0] != "y":
-        break
+    input(prompt("Enter any key to continue..."))
+
+    count += 1
+    if winner == "Player":
+        player_win += 1
+    if winner == "Computer":
+        computer_win += 1
+
+    print(prompt(f"Player won {player_win} times and computer won {computer_win} times"))
+
+    if count == 5:
+        display_match_result(player_win, computer_win)
+        print(prompt("Play another match? y/n"))
+        answer = input().strip().lower()
+        if not answer or answer.strip()[0] != "y":
+            break
+        count = 0
+        player_win = 0
+        computer_win = 0
