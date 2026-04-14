@@ -5,6 +5,16 @@ VACANT = ' '
 HUMAN_PLAYER = 'X'
 COMPUTER_PLAYER = 'O'
 NUMBER_OF_GAMES = 5
+WINNING_COMBOS = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+    [1, 4, 7],
+    [2, 5, 8],
+    [3, 6, 9],
+    [1, 5, 9],
+    [3, 5, 7]
+]
 
 def display_board(board):
     os.system('clear')
@@ -55,24 +65,47 @@ def player_chooses_square(board):
 
     board[int(square)] = HUMAN_PLAYER
 
+def square_at_risk(line, board):
+    choices = [board[key] for key in line]
+    if choices.count(HUMAN_PLAYER) == 2:
+        for key in line:
+            if board[key] == VACANT:
+                return key
+    return None
+
+def square_to_attack(line, board):
+    choices = [board[key] for key in line]
+    if choices.count(COMPUTER_PLAYER) == 2:
+        for key in line:
+            if board[key] == VACANT:
+                return key
+    return None
+
+
 def computer_chooses_square(board):
+    for combo in WINNING_COMBOS:
+        square_to_win = square_to_attack(combo, board)
+        if square_to_win:
+            board[square_to_win] = COMPUTER_PLAYER
+            return
+
+    for combo in WINNING_COMBOS:
+        square = square_at_risk(combo, board)
+        if square:
+            board[square] = COMPUTER_PLAYER
+            return
+
+    if board[5] == VACANT:
+        board[5] = COMPUTER_PLAYER
+        return
+
     valid_squares = get_valid_squares(board)
     if valid_squares:
         square = random.choice(valid_squares)
         board[int(square)] = COMPUTER_PLAYER
 
 def detect_winner(board):
-    winning_combos = [
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [1, 4, 7],
-        [2, 5, 8],
-        [3, 6, 9],
-        [1, 5, 9],
-        [3, 5, 7]
-    ]
-    for combo in winning_combos:
+    for combo in WINNING_COMBOS:
         key1, key2, key3 = combo
         if board[key1] == board[key2] == board[key3] == HUMAN_PLAYER:
             return "Player"
@@ -116,6 +149,7 @@ while True:
         winner = detect_winner(board)
         print(prompt(f"{winner} won!"))
     else:
+        winner = None
         print(prompt("It's a tie"))
 
     input(prompt("Enter any key to continue..."))
