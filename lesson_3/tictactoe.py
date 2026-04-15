@@ -15,6 +15,9 @@ WINNING_COMBOS = [
     [1, 5, 9],
     [3, 5, 7]
 ]
+YES = ['y', 'ye', 'yes', 'yep']
+NO = ['n', 'no', 'not', 'nope']
+
 
 def display_board(board):
     os.system('clear')
@@ -104,6 +107,19 @@ def computer_chooses_square(board):
         square = random.choice(valid_squares)
         board[int(square)] = COMPUTER_PLAYER
 
+def choose_square(board, player):
+    if player == "1":
+        player_chooses_square(board)
+    else:
+        computer_chooses_square(board)
+
+def change_player(player):
+    if player == "1":
+        player = "2"
+    else:
+        player = "1"
+    return player
+
 def detect_winner(board):
     for combo in WINNING_COMBOS:
         key1, key2, key3 = combo
@@ -132,16 +148,19 @@ computer_win = 0
 count = 0
 while True:
     board = initialize_board()
+    while True:
+        player = input(prompt("Choose who moves first: 1 - you, 2 - computer: ")).strip().casefold()
+        if player in ("1", "2"):
+            break
+        else:
+            print(prompt("Invalid input. Try again."))
+
     display_board(board)
 
     while True:
-        player_chooses_square(board)
+        choose_square(board, player)
         display_board(board)
-        if someone_won(board) or board_full(board):
-            break
-
-        computer_chooses_square(board)
-        display_board(board)
+        player = change_player(player)
         if someone_won(board) or board_full(board):
             break
 
@@ -162,12 +181,19 @@ while True:
 
     print(prompt(f"Player won {player_win} times and computer won {computer_win} times"))
 
-    if count == 5:
+    if count == NUMBER_OF_GAMES:
         display_match_result(player_win, computer_win)
         print(prompt("Play another match? y/n"))
         answer = input().strip().lower()
-        if not answer or answer.strip()[0] != "y":
+
+        while answer not in NO and answer not in YES:
+            print(prompt("Invalid answer. Try again."))
+            print(prompt("Play another match? y/n"))
+            answer = input().strip().lower()
+
+        if answer in NO:
             break
+
         count = 0
         player_win = 0
         computer_win = 0
